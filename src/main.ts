@@ -80,7 +80,7 @@ async function analyzeCode(
 
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
   return `あなたのタスクはプルリクエストをレビューすることです。以下の指示に従ってください：
-  
+- 日本語でレビューを書いてください
 - レスポンスは以下の JSON フォーマットで出力してください:
   \`{"reviews": [{"lineNumber": <行番号>, "reviewComment": "<レビューコメント>"}]}\`
 - 肯定的なコメントや褒め言葉は不要です。
