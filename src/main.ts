@@ -79,36 +79,38 @@ async function analyzeCode(
 }
 
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
-- IMPORTANT: NEVER suggest adding comments to the code.
-
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
+  return `あなたのタスクはプルリクエストをレビューすることです。以下の指示に従ってください：
   
-Pull request title: ${prDetails.title}
-Pull request description:
+- レスポンスは以下の JSON フォーマットで出力してください:
+  \`{"reviews": [{"lineNumber": <行番号>, "reviewComment": "<レビューコメント>"}]}\`
+- 肯定的なコメントや褒め言葉は不要です。
+- 改善点がある場合のみコメントを提供してください。改善点がない場合、"reviews" は空の配列であるべきです。
+- コメントは GitHub Markdown 形式で記述してください。
+- プルリクエストの説明は、全体的な文脈を理解するためだけに使用し、コード自体に対するコメントのみ行ってください。
+- 重要: **コードにコメントを追加するよう提案してはいけません。**
+
+以下のファイル "${file.to}" のコード差分をレビューしてください。
+プルリクエストのタイトルと説明を考慮しながら、レビューコメントを作成してください。
+
+プルリクエストのタイトル: ${prDetails.title}
+プルリクエストの説明:
 
 ---
 ${prDetails.description}
 ---
 
-Git diff to review:
+レビュー対象の Git diff:
 
 \`\`\`diff
 ${chunk.content}
 ${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
+  // @ts-expect-error - ln と ln2 は必要な場合のみ存在
   .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
   .join("\n")}
 \`\`\`
 `;
 }
+
 
 async function getAIResponse(prompt: string): Promise<Array<{
   lineNumber: string;
