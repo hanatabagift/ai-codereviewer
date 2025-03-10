@@ -80,7 +80,6 @@ async function analyzeCode(
 
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
   return `あなたのタスクはプルリクエストをレビューすることです。以下の指示に従ってください：
-- 日本語でレビューを書いてください
 - レスポンスは以下の JSON フォーマットで出力してください:
   \`{"reviews": [{"lineNumber": <行番号>, "reviewComment": "<レビューコメント>"}]}\`
 - 肯定的なコメントや褒め言葉は不要です。
@@ -88,6 +87,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - コメントは GitHub Markdown 形式で記述してください。
 - プルリクエストの説明は、全体的な文脈を理解するためだけに使用し、コード自体に対するコメントのみ行ってください。
 - 重要: **コードにコメントを追加するよう提案してはいけません。**
+- 重要: **必ず日本語でレビューを書いてください**
 
 以下のファイル "${file.to}" のコード差分をレビューしてください。
 プルリクエストのタイトルと説明を考慮しながら、レビューコメントを作成してください。
