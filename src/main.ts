@@ -58,14 +58,15 @@ async function getDiff(
 
 async function analyzeCode(
   parsedDiff: File[],
-  prDetails: PRDetails
+  prDetails: PRDetails,
+  customPrompt?: string
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
 
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
-      const prompt = createPrompt(file, chunk, prDetails);
+      const prompt = createPrompt(file, chunk, prDetails, customPrompt);
       const aiResponse = await getAIResponse(prompt);
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -78,8 +79,8 @@ async function analyzeCode(
   return comments;
 }
 
-function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `あなたのタスクはプルリクエストをレビューすることです。以下の指示に従ってください：
+function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails, customPrompt?: string): string {
+  const defaultPrompt = `あなたのタスクはプルリクエストをレビューすることです。以下の指示に従ってください：
 - レスポンスは以下の JSON フォーマットで出力してください:
   \`{"reviews": [{"lineNumber": <行番号>, "reviewComment": "<レビューコメント>"}]}\`
 - 肯定的なコメントや褒め言葉は不要です。
@@ -87,7 +88,11 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - コメントは GitHub Markdown 形式で記述してください。
 - プルリクエストの説明は、全体的な文脈を理解するためだけに使用し、コード自体に対するコメントのみ行ってください。
 - 重要: **コードにコメントを追加するよう提案してはいけません。**
-- 重要: **必ず日本語でレビューを書いてください**
+- 重要: **必ず日本語でレビューを書いてください**`;
+
+  const prompt = customPrompt || defaultPrompt;
+
+  return `${prompt}
 
 以下のファイル "${file.to}" のコード差分をレビューしてください。
 プルリクエストのタイトルと説明を考慮しながら、レビューコメントを作成してください。
@@ -110,7 +115,6 @@ ${chunk.changes
 \`\`\`
 `;
 }
-
 
 async function getAIResponse(prompt: string): Promise<Array<{
   lineNumber: string;
@@ -234,7 +238,9 @@ async function main() {
     );
   });
 
-  const comments = await analyzeCode(filteredDiff, prDetails);
+  const customPrompt = core.getInput("custom_prompt");
+
+  const comments = await analyzeCode(filteredDiff, prDetails, customPrompt);
   if (comments.length > 0) {
     await createReviewComment(
       prDetails.owner,
